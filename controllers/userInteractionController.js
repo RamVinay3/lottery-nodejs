@@ -21,7 +21,7 @@ exports.postHelp=(req,res,next)=>{
         })
     })
     .catch((err)=>{
-        console.log(error);
+        
         next(err);
     });
 
@@ -43,7 +43,7 @@ exports.postFeedback=(req,res,next)=>{
         })
     })
     .catch((err)=>{
-        console.log(error);
+       
         next(err);
     });
 

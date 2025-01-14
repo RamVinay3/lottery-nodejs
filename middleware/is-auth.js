@@ -7,7 +7,7 @@ module.exports = (req, res, next) => {
     error.statusCode = 401;
     throw error;
   }
-  console.log(authHeader,"header")
+  // console.log(authHeader,"header")
   // const token = authHeader.split(' ')[1]; if bearer is used otherwise
   const token=authHeader;
   let decodedToken;

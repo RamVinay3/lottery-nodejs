@@ -27,11 +27,8 @@ exports.getAvailableTickets = async (req, res, next) => {
       })),
     });
   } catch (error) {
-    console.error("Error fetching available tickets:", error.message);
-    return res.json({
-      success: false,
-      message: error.message,
-    });
+   const err= new Error("Unexpected Error while fetching available tickets");
+    next(err);
   }
 };
 
@@ -49,7 +46,9 @@ const buyTicket = async (userId, ticketId, quantity) => {
     const userTickets = user.purchasedTickets.filter(
       (pt) => pt.ticketInfo.toString() === ticketId
     );
-    if (userTickets.length >= (ticket.maxTicketPerUser || Infinity)) {
+    
+   
+    if (userTickets.length >= (ticket.maxTicketsPerUser || Infinity)) {
       throw new Error(
         "You have reached the maximum purchase limit for this ticket"
       );
@@ -68,6 +67,9 @@ const buyTicket = async (userId, ticketId, quantity) => {
     // Save the user
     await user.save();
 
+    ticket.soldTickets += quantity;
+    ticket.save();
+
     // saving in another database , kinda feels like log to check if incase.
     const newPurchase = new TicketPurchase({
      'userId': userId,
@@ -79,7 +81,7 @@ const buyTicket = async (userId, ticketId, quantity) => {
     await newPurchase.save();
     return true;
   } catch (error) {
-    console.error("Error purchasing ticket:", error.message);
+
     throw error;
     
   }
@@ -89,14 +91,22 @@ exports.processTicket = async (req, res, next) => {
   const userId = req.user.userId;
   const ticketId = req.body.tickedId;
   const qunatity = 1;
-  var bought = await buyTicket(userId, ticketId, qunatity);
-  console.log(bought);
+  try{
+    var bought = await buyTicket(userId, ticketId, qunatity);
+ 
   if (bought) {
     return res.json({
       errCode: 0,
       errMsg: "Thank you for purchasing ticket",
     });
   }
+  }
+  catch(err){
+    
+   
+    next(err);
+  }
+  
 };
 
 //------------------------this will fetch purchased tickets by the user-------------------------------------
@@ -115,6 +125,7 @@ async function getUserTickets(userId) {
     const tickets = user.purchasedTickets.map((ticket) => ({
       personalTicketId: ticket.personalTicketId,
       ticketInfo: {
+        
         name: ticket.ticketInfo.name,
         winnerAmount: ticket.ticketInfo.winnerAmount,
         price: ticket.ticketInfo.priceAmount,
@@ -131,11 +142,8 @@ async function getUserTickets(userId) {
       tickets,
     };
   } catch (error) {
-    console.error("Error fetching user tickets:", error.message);
-    return {
-      success: false,
-      message: error.message,
-    };
+   
+    throw error;
   }
 }
 
@@ -151,9 +159,7 @@ exports.purchasedTickets = async (req, res, next) => {
 
     res.status(200).json(result);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
+    next(error);
   }
 };
 
@@ -196,7 +202,7 @@ exports.createTicket = async (req, res, next) => {
       ticket: savedTicket,
     });
   } catch (error) {
-    console.error("Error creating ticket:", error.message);
-    next(error.message);
+    
+    next(error);
   }
 };
