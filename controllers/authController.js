@@ -1,6 +1,7 @@
 const User = require("../modals/User");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto');
 
 exports.getUserDetails = (req, res, next) => {
   User.findById(req.user.userId)
@@ -93,17 +94,21 @@ exports.signup = (req, res, next) => {
 };
 
 exports.forgotPassword =  (req, res, next) => {
-  User.find({ email: req.body.email })
+  User.findOne({ email: req.body.email.toLowerCase() })
     .then((user) => {
       if (!user) {
         throw new Error("The user is not found");
       }
+     
       const token = crypto.randomBytes(32).toString('hex'); // Generate token
-      bcrypt.hash(token, 10).then((hashedvalue)=>[
+      bcryptjs.hash(token, 10).then((hashedvalue)=>{
         user.resetToken = token,
         user.resetLinkExpires= new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
-        user.save()
-      ]); // Hash the token
+        user.save();
+        res.json({ msg: "The reset link has been sent to your email" });
+    }); // Hash the token
+
+     
 
     })
     .catch((err) => {
