@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    resetLinkExpires: {
+        type: String,
+        default: "",
+    },
     firstName: {
         type: String,
         required: true,

@@ -51,8 +51,8 @@ exports.login = (req, res, next) => {
             errorMsg: "The user has been logged in",
           });
         } else {
-            const err = new Error("The email or password is incorrect");
-            return next(err);
+          const err = new Error("The email or password is incorrect");
+          return next(err);
         }
       })
       .catch((err) => {
@@ -86,14 +86,30 @@ exports.signup = (req, res, next) => {
           next(e);
         });
     } else {
-      const err=new Error("The account on this email already exists");
-        next(err);
+      const err = new Error("The account on this email already exists");
+      next(err);
     }
   });
 };
 
-exports.forgotPassword = (req, res, next) => {
-  return res.json({ msg: "You forgot password" });
+exports.forgotPassword =  (req, res, next) => {
+  User.find({ email: req.body.email })
+    .then((user) => {
+      if (!user) {
+        throw new Error("The user is not found");
+      }
+      const token = crypto.randomBytes(32).toString('hex'); // Generate token
+      bcrypt.hash(token, 10).then((hashedvalue)=>[
+        user.resetToken = token,
+        user.resetLinkExpires= new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
+        user.save()
+      ]); // Hash the token
+
+    })
+    .catch((err) => {
+      next(err);
+    });
+  //return res.json({ msg: "You forgot password" });
 };
 
 exports.resetPassword = (req, res, next) => {
