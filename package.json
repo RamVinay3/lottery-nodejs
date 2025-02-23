@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "This is used to connect to database and authenticate the users",
   "main": "app.js",
+  "engines": {
+    "node":"22.5.1"
+  },
   "scripts": {
     "test": "mocha",
     "start": "NODE_ENV=production MONGO_USER=ramvinay609 MONGO_PASSWORD=Ramvinay3 MONGO_DEFAULT_DB=lottery node app.js",
